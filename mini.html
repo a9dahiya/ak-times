@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Mini Crossword - Akhilesh Times</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(120deg, #fceabb 0%, #f8b500 100%);
+      margin: 0;
+      padding: 30px 16px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      border-collapse: collapse;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    td {
+      width: 48px;
+      height: 48px;
+      border: 2px solid #333;
+      position: relative;
+      background: #fff;
+      padding: 0;
+    }
+
+    input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      font-size: 1.5rem;
+      text-align: center;
+      font-weight: bold;
+      background: transparent;
+      text-transform: uppercase;
+      outline: none;
+      caret-color: #f59e0b;
+      color: #333;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    input:focus {
+      background: #fffbe7;
+    }
+
+    .number {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 0.65rem;
+      font-weight: bold;
+      color: #555;
+      z-index: 2;
+    }
+
+    .clues {
+      max-width: 320px;
+      background: rgba(255,255,255,0.85);
+      padding: 16px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .clues b {
+      font-size: 1.1rem;
+      color: #1f2937;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .clues ul {
+      padding-left: 18px;
+      margin: 4px 0 12px 0;
+    }
+
+    .clues li {
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    #mini-message {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #333;
+      min-height: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      td { width: 38px; height: 38px; }
+      input { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <h2>The Mini Crossword</h2>
+  <div class="container">
+    <table id="grid"></table>
+
+    <div class="clues">
+      <b>Across</b>
+      <ul id="across-clues">
+        <!-- Will be filled by JS -->
+      </ul>
+      <b>Down</b>
+      <ul id="down-clues">
+        <!-- Will be filled by JS -->
+      </ul>
+    </div>
+  </div>
+
+  <div id="mini-message"></div>
+
+  <script>
+    const GRID_SIZE = 5;
+
+    const solution = [
+  "D", "A", "D", "D", "Y",
+  "A", "G", "A", "V", "E",
+  "D", "A", "T", "E", "S",
+  "D", "U", "E", "L", "S",
+  "Y", "E", "S", "E", "S"
+];
+
+
+    // Clues, order will be matched to the numbering
+    const acrossClues = [
+      "My Nickname",
+      "2 down present tense",
+      "My Fav Nights",
+      "When two of us are fighting",
+      "What u moan harder"
+    ];
+    const downClues = [
+    "My Nickname",
+      "AGAUE",
+      "My Fav Nights",
+      "Lost in thought of u",
+      "What u moan"
+    ];
+
+    // Returns a map: cell index -> number (1-based), for crossword numbering
+    // Also returns arrays of {number, startIdx, length} for across and down words
+    function getNumberedCellsAndWords() {
+      let numbers = {};
+      let num = 1;
+      let acrossWords = [];
+      let downWords = [];
+      for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+          const idx = row * GRID_SIZE + col;
+          // Across: start if at left edge or left is not part of word, and at least 2 letters
+          let startsAcross = (col === 0 || solution[idx - 1] === undefined) &&
+                             (col < GRID_SIZE - 1 && solution[idx + 1] !== undefined);
+          // Down: start if at top or above is not part of word, and at least 2 letters
+          let startsDown = (row === 0 || solution[idx - GRID_SIZE] === undefined) &&
+                           (row < GRID_SIZE - 1 && solution[idx + GRID_SIZE] !== undefined);
+
+          if (startsAcross || startsDown) {
+            numbers[idx] = num;
+            // Find across word
+            if (startsAcross) {
+              let len = 1;
+              while (col + len < GRID_SIZE && solution[idx + len] !== undefined) len++;
+              acrossWords.push({number: num, startIdx: idx, length: len});
+            }
+            // Find down word
+            if (startsDown) {
+              let len = 1;
+              while (row + len < GRID_SIZE && solution[idx + len * GRID_SIZE] !== undefined) len++;
+              downWords.push({number: num, startIdx: idx, length: len});
+            }
+            num++;
+          }
+        }
+      }
+      return {numbers, acrossWords, downWords};
+    }
+
+    const {numbers: numberedCells, acrossWords, downWords} = getNumberedCellsAndWords();
+
+    // Render clues with their corresponding numbers
+    function renderClues() {
+      const acrossList = document.getElementById("across-clues");
+      const downList = document.getElementById("down-clues");
+      acrossList.innerHTML = "";
+      downList.innerHTML = "";
+      // Map clues to their numbers in order
+      for (let i = 0; i < acrossWords.length; i++) {
+        const num = acrossWords[i].number;
+        const clue = acrossClues[i] || "";
+        const li = document.createElement("li");
+        li.textContent = `${num}. ${clue}`;
+        acrossList.appendChild(li);
+      }
+      for (let i = 0; i < downWords.length; i++) {
+        const num = downWords[i].number;
+        const clue = downClues[i] || "";
+        const li = document.createElement("li");
+        li.textContent = `${num}. ${clue}`;
+        downList.appendChild(li);
+      }
+    }
+
+    renderClues();
+
+    const grid = document.getElementById("grid");
+    const message = document.getElementById("mini-message");
+
+    // Build grid dynamically
+    for (let row = 0; row < GRID_SIZE; row++) {
+      const tr = document.createElement("tr");
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const index = row * GRID_SIZE + col;
+        const td = document.createElement("td");
+
+        if (numberedCells.hasOwnProperty(index)) {
+          const numDiv = document.createElement("div");
+          numDiv.className = "number";
+          numDiv.innerText = numberedCells[index];
+          td.appendChild(numDiv);
+        }
+
+        const input = document.createElement("input");
+        input.maxLength = 1;
+        input.id = `c${index}`;
+        input.autocomplete = "off";
+        input.addEventListener("input", () => autoCheck());
+        td.appendChild(input);
+        tr.appendChild(td);
+      }
+      grid.appendChild(tr);
+    }
+
+    function autoCheck() {
+      let correct = true;
+      for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        const input = document.getElementById("c" + i);
+        const val = input.value.toUpperCase();
+        if (val === "") {
+          input.style.background = "";
+          input.style.color = "#333";
+          correct = false;
+        } else if (val === solution[i]) {
+          input.style.background = "";
+          input.style.color = "#2563eb"; // blue
+        } else {
+          input.style.background = "#fca5a5"; // red background
+          input.style.color = "#333";
+          correct = false;
+        }
+      }
+      message.innerText = correct
+        ? "🎉 Congratulations! Puzzle complete!"
+        : "";
+      message.style.color = correct ? "#16a34a" : "#333";
+    }
+  </script>
+</body>
+</html>

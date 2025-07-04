@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connections - Akhilesh Times</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      color: #333;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(100px, 140px));
+      gap: 12px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .word {
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 20px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .word:hover {
+      transform: scale(1.05);
+      background: #f7f7f7;
+    }
+
+    .selected {
+      background: #facc15; /* yellow-400 */
+      border-color: #eab308;
+    }
+
+    .grouped {
+      background: #22c55e; /* green-500 */
+      color: white;
+      border-color: #16a34a;
+      cursor: default;
+    }
+
+    button {
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #334155;
+    }
+
+    #message {
+      margin-top: 18px;
+      font-size: 1.1rem;
+      color: #1f2937;
+      min-height: 24px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <h2>Connections</h2>
+  <div id="grid" class="grid"></div>
+  <button onclick="submitGroup()">Submit Group</button>
+  <div id="message"></div>
+
+  <script>
+    const words = [
+      "MASSIVE", "SOUR", "BF", "COCK",
+      "BOCK", "STEAK", "NEW BORN", "TAIL",
+      "TOY", "DONUT FILLER", "BF", "WAFFLEU",
+      "SK", "BITTER", "STOUT", "GORU"
+    ];
+
+    const groups = [
+      ["BITTER", "BOCK", "SOUR", "STOUT"],
+      ["COCK", "STEAK", "NEW BORN", "GORU"],
+      ["TAIL", "MASSIVE", "TOY", "DONUT FILLER"], 
+      ["BF", "KHANA", "WAFFLEU", "SK"]
+    ];
+
+    let selected = [];
+    let found = [];
+
+    function renderGrid() {
+      let html = '';
+      for (let i = 0; i < words.length; i++) {
+        let cls = '';
+        if (selected.includes(i)) cls = 'selected';
+        if (found.includes(words[i])) cls = 'grouped';
+        html += `<div class="word ${cls}" onclick="selectWord(${i})">${words[i]}</div>`;
+      }
+      document.getElementById('grid').innerHTML = html;
+    }
+
+    function selectWord(i) {
+      if (found.includes(words[i])) return;
+      if (selected.includes(i)) {
+        selected = selected.filter(x => x !== i);
+      } else if (selected.length < 4) {
+        selected.push(i);
+      }
+      renderGrid();
+    }
+
+    function submitGroup() {
+      const messageEl = document.getElementById('message');
+      if (selected.length !== 4) {
+        messageEl.innerText = "Select 4 words.";
+        return;
+      }
+
+      const chosenWords = selected.map(i => words[i]);
+      let correct = false;
+      let oneAway = false;
+
+      for (let group of groups) {
+        const matchCount = chosenWords.filter(word => group.includes(word)).length;
+        if (matchCount === 4) {
+          if (!group.every(w => found.includes(w))) {
+            found = found.concat(group);
+            correct = true;
+          }
+          break;
+        } else if (matchCount === 3) {
+          oneAway = true;
+        }
+      }
+
+      if (correct) {
+        messageEl.innerText = "✅ Correct group!";
+      } else if (oneAway) {
+        messageEl.innerText = "⚠️ One away!";
+      } else {
+        messageEl.innerText = "❌ Try again.";
+      }
+
+      selected = [];
+      renderGrid();
+
+      if (found.length === 16) {
+        messageEl.innerText = "🎉 Congratulations! All groups found!";
+      }
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>

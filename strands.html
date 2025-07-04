@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Strands - Things We Did</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      background-color: #f9fafb;
+      padding: 20px;
+    }
+    h2 { margin-bottom: 5px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 50px);
+      gap: 6px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      background-color: #ffffff;
+      border: 2px solid #d3d6da;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+      line-height: 50px;
+      cursor: pointer;
+      user-select: none;
+      transition: 0.2s;
+    }
+    .cell:hover {
+      background-color: #eee;
+    }
+    .selected { background-color: #c9b458; color: white; }
+    .found { background-color: #6aaa64; color: white; }
+    .spangram { background-color: #f7b801; color: white; }
+    button {
+      padding: 10px 20px;
+      background-color: #6aaa64;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-top: 10px;
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 1.1em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Strands</h2>
+  <div>Hum Saath Saath Hain</div>
+  <div id="grid" class="grid"></div>
+  <button onclick="submitWord()">Submit Word</button>
+  <div id="message"></div>
+
+  <script>
+    const grid = [
+      "E","C","T","H","S","I",
+      "G","D","N","I","S","K",
+      "O","A","S","G","N","E",
+      "O","U","W","O","V","T",
+      "A","T","E","M","I","A",
+      "U","L","D","E","E","D",
+      "G","I","D","V","O","L",
+      "H","D","R","I","N","K"
+    ];
+
+    const wordPaths = {
+      "thingswedid": [2, 3, 9, 16, 15, 14, 20, 26, 32, 37, 43],
+      "dance": [7, 13, 8, 1, 0],
+      "goout": [6, 12, 18, 19, 25],
+      "laugh": [31, 24, 30, 36, 42],
+      "kiss": [11, 5, 4, 10],
+      "date": [35, 29, 23, 17],
+      "movie": [27, 21, 22, 28, 34],
+      "love": [41, 40, 39, 33],
+      "drink": [38, 44, 45, 46, 47]
+    };
+
+    let selected = [];
+    let found = new Set();
+    let spangramFound = false;
+    let foundWords = new Set();
+
+    function renderGrid() {
+      let html = '';
+      for (let i = 0; i < grid.length; i++) {
+        let cls = '';
+        if (selected.includes(i)) cls = 'selected';
+        if (found.has(i)) cls = 'found';
+        if (spangramFound && wordPaths["thingswedid"].includes(i)) cls = 'spangram';
+        html += `<div class="cell ${cls}" onclick="selectCell(${i})">${grid[i]}</div>`;
+      }
+      document.getElementById('grid').innerHTML = html;
+    }
+
+    function selectCell(i) {
+      if (found.has(i) || (spangramFound && wordPaths["thingswedid"].includes(i))) return;
+      if (selected.includes(i)) {
+        selected = selected.filter(x => x !== i);
+      } else {
+        selected.push(i);
+      }
+      renderGrid();
+    }
+
+    function arraysEqual(a, b) {
+      return a.length === b.length && a.every((val, idx) => val === b[idx]);
+    }
+
+    function submitWord() {
+      const sortedSelected = [...selected].sort((a, b) => a - b);
+      let matched = false;
+
+      for (const [word, path] of Object.entries(wordPaths)) {
+        if (arraysEqual(sortedSelected, [...path].sort((a, b) => a - b))) {
+          if (word === "thingswedid" && !spangramFound) {
+            spangramFound = true;
+            document.getElementById('message').innerText = `✨ Spangram ${word}`;
+            matched = true;
+            break;
+          } else if (!foundWords.has(word)) {
+            path.forEach(idx => found.add(idx));
+            foundWords.add(word);
+            document.getElementById('message').innerText = `✅  ${word}`;
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      if (!matched) {
+        document.getElementById('message').innerText = "❌ Not a valid theme word.";
+      }
+
+      selected = [];
+      renderGrid();
+
+      if (foundWords.size === Object.keys(wordPaths).length - 1 && spangramFound) {
+        document.getElementById('message').innerText = "🎉 You found everything!";
+      }
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>

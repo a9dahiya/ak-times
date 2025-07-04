@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Akhilesh Times</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      font-size: 3rem;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      color: #222;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 220px);
+      gap: 32px;
+    }
+    .game-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px 0;
+      text-align: center;
+      text-decoration: none;
+      color: #222;
+      font-size: 1.4rem;
+      font-weight: 600;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .game-card:hover {
+      transform: scale(1.04);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      background: #e0eafc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Akhilesh Times</h1>
+  <div class="games-grid">
+    <a class="game-card" href="wordle.html">Wordle</a>
+    <a class="game-card" href="connections.html">Connections</a>
+    <a class="game-card" href="strands.html">Strands</a>
+    <a class="game-card" href="mini.html">The Mini Crossword</a>
+  </div>
+</body>
+</html>
